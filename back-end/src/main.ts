@@ -5,8 +5,6 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 1. Set a global prefix (Optional but recommended)
-  // This makes your URLs: http://localhost:5000/api/users/register
   app.setGlobalPrefix('api');
 
   // 2. Enable Validation Globally

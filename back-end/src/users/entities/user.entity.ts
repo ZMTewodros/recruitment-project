@@ -2,22 +2,26 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
+  OneToOne,
+  OneToMany,
 } from 'typeorm';
+import { Profile } from '../../profiles/entities/profile.entity';
+import { Company } from '../../companies/entities/company.entity';
+import { Application } from '../../applications/entities/application.entity';
 
-@Entity('users') // This tells PostgreSQL to create a table named 'users'
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn() // Auto-incrementing ID (1, 2, 3...)
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  fullName: string;
+  name: string;
 
-  @Column({ unique: true }) // No two users can have the same email
+  @Column({ unique: true })
   email: string;
 
-  @Column()
-  password: string; // We will hash this later for security
+  @Column({ select: false }) // Security: prevents password from being returned in standard queries
+  password: string;
 
   @Column({
     type: 'enum',
@@ -26,6 +30,12 @@ export class User {
   })
   role: string;
 
-  @CreateDateColumn() // Automatically records when the user registered
-  createdAt: Date;
+  @OneToOne(() => Profile, (profile) => profile.user)
+  profile: Profile;
+
+  @OneToOne(() => Company, (company) => company.user)
+  company: Company;
+
+  @OneToMany(() => Application, (app) => app.user)
+  applications: Application[];
 }

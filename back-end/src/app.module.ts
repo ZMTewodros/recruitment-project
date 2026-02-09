@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
+import { ApplicationsModule } from './applications/applications.module';
+import { JobsModule } from './jobs/jobs.module';
+import { CompaniesModule } from './companies/companies.module';
+import { ProfilesModule } from './profiles/profiles.module';
 @Module({
   imports: [
     // 1. Load the .env file globally
@@ -22,7 +26,12 @@ import { UsersModule } from './users/users.module';
         synchronize: true, // Set to false in production to prevent data loss!
       }),
     }),
-    UsersModule, // Import the UsersModule to use its services and controllers
+    // 3. Register all feature modules
+    UsersModule,
+    ProfilesModule,
+    CompaniesModule,
+    JobsModule,
+    ApplicationsModule,
   ],
 })
 export class AppModule {}
