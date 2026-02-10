@@ -18,19 +18,20 @@ export class Profile {
   @Column({ nullable: true })
   address: string;
 
-  @Column('text', { nullable: true })
-  skills: string;
+  @Column('text', { array: true, nullable: true }) // Storing skills as an array
+  skills: string[];
 
-  @Column({ type: 'text', nullable: true })
+  @Column('text', { nullable: true })
   experience: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ nullable: true })
   education: string;
 
   @Column({ nullable: true })
-  cv: string;
+  cv_url: string; // Path to the uploaded file
 
+  // Linking to User
   @OneToOne(() => User, (user) => user.profile, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'user_id' }) // This creates the user_id column in the DB
   user: User;
 }
