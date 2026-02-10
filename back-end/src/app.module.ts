@@ -6,6 +6,7 @@ import { ApplicationsModule } from './applications/applications.module';
 import { JobsModule } from './jobs/jobs.module';
 import { CompaniesModule } from './companies/companies.module';
 import { ProfilesModule } from './profiles/profiles.module';
+import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     // 1. Load the .env file globally
@@ -32,6 +33,7 @@ import { ProfilesModule } from './profiles/profiles.module';
     CompaniesModule,
     JobsModule,
     ApplicationsModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
