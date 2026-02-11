@@ -23,6 +23,7 @@ export class Company {
   @Column({ nullable: true })
   logo: string;
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   @OneToOne(() => User, (user) => user.company, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
