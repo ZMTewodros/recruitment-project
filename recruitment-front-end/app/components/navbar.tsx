@@ -106,7 +106,7 @@ export default function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6">
-          <Link href="/jobs">Jobs</Link>
+          <Link href="/jobs">Jobs </Link>
 
           {isAdmin && (
             <Link href="/admin" className="font-medium text-indigo-600">
@@ -135,8 +135,8 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden px-6 py-4 space-y-4 bg-white dark:bg-gray-900 border-t">
-          <Link href="/music">Music</Link>
+        <div className="md:hidden px-6 py-4 space-y-4 bg-white dark:bg-gray-900 border-t flex items-center gap-6">
+          <Link href="/jobs">Jobs</Link>
 
           {isAdmin && <Link href="/admin">Admin</Link>}
 
@@ -148,9 +148,9 @@ export default function Navbar() {
             </button>
           )}
 
-          <button onClick={() => setDarkMode((v) => !v)}>
+          {/* <button onClick={() => setDarkMode((v) => !v)}>
             {darkMode ? 'Light Mode' : 'Dark Mode'}
-          </button>
+          </button> */}
         </div>
       )}
     </header>
