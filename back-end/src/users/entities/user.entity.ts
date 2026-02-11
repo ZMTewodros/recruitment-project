@@ -20,6 +20,14 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Column({ default: false })
+  isEmailVerified: boolean; // Indicates if the email is verified
+  @Column({ type: 'varchar', nullable: true })
+  emailVerificationToken: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  resetPasswordToken: string | null;
+
   @Column({ select: false }) // Security: prevents password from being returned in standard queries
   password: string;
 
