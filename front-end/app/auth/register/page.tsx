@@ -7,6 +7,8 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('USER');
+
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -19,7 +21,7 @@ export default function RegisterPage() {
     // 🔹 example API call
     await apiFetch('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, role }),
     });
 
     // ✅ SUCCESS
@@ -32,8 +34,12 @@ export default function RegisterPage() {
 
     // auto-hide toast after 3s
     setTimeout(() => setSuccess(''), 3000);
-  } catch (err: any) {
-    setError(err.message || 'Registration failed');
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      setError(err.message || 'Registration failed');
+    } else {
+      setError('Registration failed');
+    }
   }
 }
 
@@ -112,6 +118,23 @@ export default function RegisterPage() {
               {error}
             </p>
           )}
+
+{/* ROLE */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+    Role
+  </label>
+
+  <select
+    value={role}
+    onChange={(e) => setRole(e.target.value)}
+    className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+  >
+    <option value="jobseeker">jobseeker</option>
+    <option value="employer">employer</option>
+    <option value="admin">admin</option>
+  </select>
+</div>
 
           {/* SUBMIT */}
           <button
