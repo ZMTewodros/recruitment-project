@@ -1,14 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
-import type { UpdateProfileDto } from './dto/update-profile.dto';
+import { GoogleDriveService } from '../common/google-drive.service';
 
 @Injectable()
 export class ProfileService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly googleDriveService: GoogleDriveService,
   ) {}
 
   async getMyProfile(userId: number): Promise<User> {
@@ -33,20 +38,35 @@ export class ProfileService {
     return user;
   }
 
-  async updateProfile(userId: number, data: UpdateProfileDto): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
-    Object.assign(user, data);
-    return this.userRepository.save(user);
+  async uploadCVToDrive(userId: number, file: Express.Multer.File) {
+    if (!file) throw new InternalServerErrorException('File is missing');
+
+    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+    if (!folderId)
+      throw new InternalServerErrorException(
+        'Google Drive folder ID is not set',
+      );
+
+    const url = await this.googleDriveService.uploadFile(file, folderId);
+
+    await this.userRepository.update(userId, { cv: url });
+
+    return { message: 'CV uploaded successfully', url };
   }
 
-  async updateCV(userId: number, filePath: string) {
-    await this.userRepository.update(userId, { cv: filePath });
-    return { message: 'CV uploaded successfully', path: filePath };
-  }
+  async uploadAvatarToDrive(userId: number, file: Express.Multer.File) {
+    if (!file) throw new InternalServerErrorException('File is missing');
 
-  async updateAvatar(userId: number, filePath: string) {
-    await this.userRepository.update(userId, { avatar: filePath });
-    return { message: 'Profile picture uploaded successfully', path: filePath };
+    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+    if (!folderId)
+      throw new InternalServerErrorException(
+        'Google Drive folder ID is not set',
+      );
+
+    const url = await this.googleDriveService.uploadFile(file, folderId);
+
+    await this.userRepository.update(userId, { avatar: url });
+
+    return { message: 'Avatar uploaded successfully', url };
   }
 }

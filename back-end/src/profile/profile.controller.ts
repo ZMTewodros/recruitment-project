@@ -1,9 +1,6 @@
 import {
   Controller,
-  Get,
-  Put,
   Post,
-  Body,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -11,47 +8,39 @@ import {
   Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
-
+import { memoryStorage } from 'multer';
 import { ProfileService } from './profile.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { UpdateProfileDto } from './dto/update-profile.dto';
-import * as authRequestInterface from '../common/interfaces/auth-request.interface';
+import { Request } from 'express';
+
+// Type-safe AuthRequest for JWT
+interface AuthRequest extends Request {
+  user: {
+    userId: number;
+    role: string;
+    [key: string]: any;
+  };
+}
+
+// Type-safe callback type for fileFilter
+type FileFilterCallback = (error: Error | null, acceptFile: boolean) => void;
 
 @Controller('profile')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
-  @Get('me')
-  getProfile(@Req() req: authRequestInterface.AuthRequest) {
-    return this.profileService.getMyProfile(req.user.userId);
-  }
-
-  @Put('me')
-  updateProfile(
-    @Req() req: authRequestInterface.AuthRequest,
-    @Body() dto: UpdateProfileDto,
-  ) {
-    return this.profileService.updateProfile(req.user.userId, dto);
-  }
-
   @Post('upload/cv')
   @UseInterceptors(
     FileInterceptor('file', {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-      storage: diskStorage({
-        destination: './uploads/cv',
-        filename: (_req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
-      fileFilter: (_req, file, cb) => {
-        if (!file.originalname.match(/\.(pdf|doc|docx)$/)) {
+      storage: memoryStorage(),
+      fileFilter: (
+        _req: any,
+        file: Express.Multer.File,
+        cb: FileFilterCallback,
+      ) => {
+        const allowedExtensions = /\.(pdf|doc|docx)$/;
+        if (!allowedExtensions.test(file.originalname.toLowerCase())) {
           return cb(
             new BadRequestException('Only document files are allowed!'),
             false,
@@ -61,32 +50,25 @@ export class ProfileController {
       },
     }),
   )
-  uploadCV(
-    @Req() req: authRequestInterface.AuthRequest,
-    @UploadedFile() file: Express.Multer.File, // Ensure @types/multer is installed
+  async uploadCV(
+    @Req() req: AuthRequest,
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    return this.profileService.updateCV(req.user.userId, file.filename);
+    if (!file) throw new BadRequestException('File is required');
+    return await this.profileService.uploadCVToDrive(req.user.userId, file);
   }
 
   @Post('upload/avatar')
   @UseInterceptors(
     FileInterceptor('file', {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-      storage: diskStorage({
-        destination: './uploads/avatar',
-        filename: (_req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
-      fileFilter: (_req, file, cb) => {
-        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+      storage: memoryStorage(),
+      fileFilter: (
+        _req: any,
+        file: Express.Multer.File,
+        cb: FileFilterCallback,
+      ) => {
+        const allowedExtensions = /\.(jpg|jpeg|png)$/;
+        if (!allowedExtensions.test(file.originalname.toLowerCase())) {
           return cb(
             new BadRequestException('Only image files are allowed!'),
             false,
@@ -96,14 +78,11 @@ export class ProfileController {
       },
     }),
   )
-  uploadAvatar(
-    @Req() req: authRequestInterface.AuthRequest,
+  async uploadAvatar(
+    @Req() req: AuthRequest,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    return this.profileService.updateAvatar(req.user.userId, file.filename);
+    if (!file) throw new BadRequestException('File is required');
+    return await this.profileService.uploadAvatarToDrive(req.user.userId, file);
   }
 }

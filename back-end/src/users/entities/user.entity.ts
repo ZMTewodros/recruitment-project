@@ -32,6 +32,7 @@ export class User {
   role: string;
   @Column({ nullable: true })
   phone: string;
+  @Column({ nullable: true }) location: string;
   @Column({ type: 'text', nullable: true })
   bio: string;
 
