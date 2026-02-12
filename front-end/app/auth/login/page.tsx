@@ -33,7 +33,7 @@ export default function LoginPage() {
       }
       notify.showSuccess('Login successful 🎉');
 
-      setTimeout(() => router.push('/music'), 1200);
+      setTimeout(() => router.push('/jobs'), 1200);
     } catch (err: any) {
       notify.showError(err?.message || 'Invalid email or password');
     } finally {
