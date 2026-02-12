@@ -5,8 +5,9 @@ import { UsersModule } from './users/users.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { JobsModule } from './jobs/jobs.module';
 import { CompaniesModule } from './companies/companies.module';
-import { ProfilesModule } from './profiles/profiles.module';
 import { AuthModule } from './auth/auth.module';
+import { RolesModule } from './roles/roles.module';
+import { ProfileModule } from './profile/profile.module';
 @Module({
   imports: [
     // 1. Load the .env file globally
@@ -29,11 +30,12 @@ import { AuthModule } from './auth/auth.module';
     }),
     // 3. Register all feature modules
     UsersModule,
-    ProfilesModule,
+    RolesModule,
     CompaniesModule,
     JobsModule,
     ApplicationsModule,
     AuthModule,
+    ProfileModule,
   ],
 })
 export class AppModule {}

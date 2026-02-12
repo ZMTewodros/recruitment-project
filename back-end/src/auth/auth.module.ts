@@ -3,17 +3,21 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
+import { MailService } from './mail.service';
+import { JwtStrategy } from './jwt.strategy';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
     UsersModule, // Needed to find users in the DB
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       global: true,
-      secret: 'YOUR_SECRET_KEY', // Use process.env.JWT_SECRET in production
+      secret: process.env.JWT_SECRET || 'YOUR_SECRET_KEY', // Use process.env.JWT_SECRET in production
       signOptions: { expiresIn: '1d' }, // Token valid for 1 day
     }),
   ],
-  providers: [AuthService],
+  providers: [AuthService, MailService, JwtStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}

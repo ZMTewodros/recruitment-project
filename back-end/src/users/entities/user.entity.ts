@@ -1,11 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToOne,
-  OneToMany,
-} from 'typeorm';
-import { Profile } from '../../profiles/entities/profile.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
 import { Application } from '../../applications/entities/application.entity';
 
@@ -20,6 +13,14 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Column({ default: false })
+  isEmailVerified: boolean; // Indicates if the email is verified
+  @Column({ type: 'varchar', nullable: true })
+  emailVerificationToken: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  resetPasswordToken: string | null;
+
   @Column({ select: false }) // Security: prevents password from being returned in standard queries
   password: string;
 
@@ -29,13 +30,33 @@ export class User {
     default: 'jobseeker',
   })
   role: string;
+  @Column({ nullable: true })
+  phone: string;
+  @Column({ type: 'text', nullable: true })
+  bio: string;
 
-  @OneToOne(() => Profile, (profile) => profile.user)
-  profile: Profile;
+  @Column({ nullable: true })
+  avatar: string;
 
-  @OneToOne(() => Company, (company) => company.user)
-  company: Company;
+  @Column({ nullable: true })
+  address: string;
 
-  @OneToMany(() => Application, (app) => app.user)
+  @Column({ type: 'text', nullable: true })
+  skills: string;
+
+  @Column({ type: 'text', nullable: true })
+  experience: string;
+
+  @Column({ type: 'text', nullable: true })
+  education: string;
+
+  @Column({ nullable: true })
+  cv: string;
+
+  @OneToMany(() => Application, (application) => application.user)
   applications: Application[];
+
+  @OneToMany(() => Company, (company) => company.user)
+  companies: Company[];
+  company: any;
 }

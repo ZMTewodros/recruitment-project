@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -14,8 +18,6 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { name, email, password, role } = createUserDto;
-
-    // Check if email already exists
     const existingUser = await this.userRepository.findOne({
       where: { email },
     });
@@ -24,37 +26,69 @@ export class UsersService {
       throw new BadRequestException('Email already registered');
     }
 
-    // Hash password
-    // use a typed wrapper for bcrypt.hash to avoid unsafe any/member-access lint errors
-    const hashFn: (s: string, r: number) => Promise<string> = (
-      bcrypt as unknown as {
-        hash: (s: string, r: number) => Promise<string>;
-      }
-    ).hash;
-    const hashedPassword = await hashFn(password, 10);
-
+    const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = this.userRepository.create({
       name,
       email,
       password: hashedPassword,
       role,
+      isEmailVerified: false,
+      emailVerificationToken: null, // Initialized as null
+      resetPasswordToken: null, // Initialized as null
     });
 
     return this.userRepository.save(newUser);
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    // Using the findOne options with explicit select should work,
-    // but let's make it even more robust for bcrypt:
+  async verifyEmail(token: string): Promise<User | null> {
     const user = await this.userRepository.findOne({
-      where: { email },
-      select: ['id', 'name', 'email', 'password', 'role'], // Must include 'password' explicitly
+      where: { emailVerificationToken: token },
     });
+    if (user) {
+      user.isEmailVerified = true;
+      user.emailVerificationToken = null;
+      return await this.userRepository.save(user);
+    }
+    return null;
+  }
 
-    return user;
+  async saveResetToken(id: number, token: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    user.resetPasswordToken = token;
+    await this.userRepository.save(user);
+  }
+
+  async updateVerificationToken(id: number, token: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    user.emailVerificationToken = token;
+    await this.userRepository.save(user);
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<User | null> {
+    const user = await this.userRepository.findOne({
+      where: { resetPasswordToken: token },
+    });
+    if (user) {
+      user.password = await bcrypt.hash(newPassword, 10);
+      user.resetPasswordToken = null;
+      return await this.userRepository.save(user);
+    }
+    return null;
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'name', 'email', 'password', 'role', 'isEmailVerified'],
+    });
   }
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return await this.userRepository.find();
   }
 }
