@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { GoogleDriveService } from '../common/google-drive.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class ProfileService {
@@ -36,6 +37,15 @@ export class ProfileService {
 
     if (!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async updateMyProfile(
+    userId: number,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<User> {
+    await this.userRepository.update(userId, updateProfileDto);
+    // Return the updated profile
+    return this.getMyProfile(userId);
   }
 
   async uploadCVToDrive(userId: number, file: Express.Multer.File) {

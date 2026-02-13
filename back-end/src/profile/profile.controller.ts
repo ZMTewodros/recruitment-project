@@ -6,12 +6,16 @@ import {
   UploadedFile,
   BadRequestException,
   Req,
+  Get,
+  Put,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ProfileService } from './profile.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 // Type-safe AuthRequest for JWT
 interface AuthRequest extends Request {
@@ -29,6 +33,21 @@ type FileFilterCallback = (error: Error | null, acceptFile: boolean) => void;
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
+  @Get('me')
+  async getMyProfile(@Req() req: AuthRequest) {
+    return await this.profileService.getMyProfile(req.user.userId);
+  }
+
+  @Put('me')
+  async updateMyProfile(
+    @Req() req: AuthRequest,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return await this.profileService.updateMyProfile(
+      req.user.userId,
+      updateProfileDto,
+    );
+  }
 
   @Post('upload/cv')
   @UseInterceptors(
