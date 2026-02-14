@@ -2,12 +2,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToOne,
   OneToMany,
-  JoinColumn,
+  ManyToOne,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { Job } from '../../jobs/entities/job.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('companies')
 export class Company {
@@ -17,15 +16,12 @@ export class Company {
   @Column()
   name: string;
 
-  @Column({ type: 'text', nullable: true })
-  description: string;
+  @Column()
+  location: string;
 
-  @Column({ nullable: true })
-  logo: string;
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  @OneToOne(() => User, (user) => user.company, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User, (user) => user.companies, {
+    onDelete: 'CASCADE',
+  })
   user: User;
 
   @OneToMany(() => Job, (job) => job.company)

@@ -27,8 +27,12 @@ export class JobsService {
     }
 
     const job = this.jobRepository.create({
-      ...createJobDto,
-      salary: String(createJobDto.salary),
+      title: createJobDto.title,
+      description: createJobDto.description,
+      category: createJobDto.category,
+      location: createJobDto.location,
+      salary: createJobDto.salary,
+      deadline: createJobDto.deadline,
       company,
       status: 'open',
     });

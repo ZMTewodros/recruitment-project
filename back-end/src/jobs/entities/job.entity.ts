@@ -26,13 +26,13 @@ export class Job {
   @Column()
   location: string;
 
-  @Column({ nullable: true })
-  salary: string;
+  @Column({ type: 'decimal', nullable: true })
+  salary: number;
 
   @Column({ type: 'timestamp' })
   deadline: Date;
 
-  @Column({ default: 'active' })
+  @Column({ default: 'open' })
   status: string;
 
   @CreateDateColumn()

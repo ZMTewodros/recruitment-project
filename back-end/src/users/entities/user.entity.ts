@@ -59,5 +59,4 @@ export class User {
 
   @OneToMany(() => Company, (company) => company.user)
   companies: Company[];
-  company: any;
 }
