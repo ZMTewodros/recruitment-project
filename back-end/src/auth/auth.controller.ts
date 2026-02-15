@@ -4,6 +4,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { User } from '../users/entities/user.entity';
+// import { OtpLoginDto } from './dto/otp-login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -13,30 +14,31 @@ export class AuthController {
   register(@Body() registerDto: RegisterDto): Promise<User> {
     return this.authService.register(registerDto);
   }
-
+  @Post('login') // Simple login endpoint
   @HttpCode(HttpStatus.OK)
-  @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<{
-    access_token: string;
-    user: { id: number; name: string; role: string };
-  }> {
+  login(@Body() loginDto: LoginDto) {
     return this.authService.signIn(loginDto.email, loginDto.password);
   }
 
+  // @Post('login/request-otp')
+  // @HttpCode(HttpStatus.OK)
+  // loginRequestOtp(@Body() loginDto: LoginDto): Promise<{ message: string }> {
+  //   return this.authService.requestLoginOtp(loginDto.email, loginDto.password);
+  // }
+
+  // @Post('login/verify-otp')
+  // @HttpCode(HttpStatus.OK)
+  // loginWithOtp(@Body() otpLoginDto: OtpLoginDto) {
+  //   return this.authService.loginWithOtp(otpLoginDto.email, otpLoginDto.otp);
+  // }
+
   @Post('forgot-password')
-  forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ message: string }> {
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto.email);
   }
 
-  @Post('verify-email')
-  verifyEmail(@Body('token') token: string): Promise<{ message: string }> {
-    return this.authService.verifyEmail(token);
-  }
-
   @Post('reset-password')
-  resetPassword(
-    @Body() dto: { token: string; newPassword: string },
-  ): Promise<{ message: string }> {
+  resetPassword(@Body() dto: { token: string; newPassword: string }) {
     return this.authService.resetPassword(dto.token, dto.newPassword);
   }
 }

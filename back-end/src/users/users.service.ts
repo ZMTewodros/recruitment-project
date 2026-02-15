@@ -1,3 +1,4 @@
+// src/users/users.service.ts
 import {
   Injectable,
   BadRequestException,
@@ -32,37 +33,16 @@ export class UsersService {
       email,
       password: hashedPassword,
       role,
-      isEmailVerified: false,
-      emailVerificationToken: null, // Initialized as null
-      resetPasswordToken: null, // Initialized as null
+      isEmailVerified: true, // Automatically verified
     });
 
     return this.userRepository.save(newUser);
-  }
-
-  async verifyEmail(token: string): Promise<User | null> {
-    const user = await this.userRepository.findOne({
-      where: { emailVerificationToken: token },
-    });
-    if (user) {
-      user.isEmailVerified = true;
-      user.emailVerificationToken = null;
-      return await this.userRepository.save(user);
-    }
-    return null;
   }
 
   async saveResetToken(id: number, token: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
     user.resetPasswordToken = token;
-    await this.userRepository.save(user);
-  }
-
-  async updateVerificationToken(id: number, token: string): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-    user.emailVerificationToken = token;
     await this.userRepository.save(user);
   }
 
@@ -84,7 +64,15 @@ export class UsersService {
   async findByEmail(email: string): Promise<User | null> {
     return await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'name', 'email', 'password', 'role', 'isEmailVerified'],
+      select: [
+        'id',
+        'name',
+        'email',
+        'password',
+        'role',
+        // 'loginOtp',
+        // 'loginOtpExpiry',
+      ],
     });
   }
 
@@ -92,3 +80,19 @@ export class UsersService {
     return await this.userRepository.find();
   }
 }
+
+//   async saveLoginOtp(id: number, otp: string, expiry: Date): Promise<void> {
+//     const user = await this.userRepository.findOne({ where: { id } });
+//     if (!user) throw new NotFoundException('User not found');
+//     user.loginOtp = otp;
+//     user.loginOtpExpiry = expiry;
+//     await this.userRepository.save(user);
+//   }
+
+//   async clearLoginOtp(id: number): Promise<void> {
+//     await this.userRepository.update(id, {
+//       loginOtp: null,
+//       loginOtpExpiry: null,
+//     });
+//   }
+// }

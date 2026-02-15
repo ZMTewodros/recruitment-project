@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
-import { Application } from '../../applications/entities/application.entity';
+import { Application } from '../../applications/entities/applications.entity';
 
 @Entity('users')
 export class User {
@@ -13,10 +13,8 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ default: false })
+  @Column({ default: true })
   isEmailVerified: boolean; // Indicates if the email is verified
-  @Column({ type: 'varchar', nullable: true })
-  emailVerificationToken: string | null;
 
   @Column({ type: 'varchar', nullable: true })
   resetPasswordToken: string | null;
@@ -53,6 +51,11 @@ export class User {
 
   @Column({ nullable: true })
   cv: string;
+  // @Column({ type: 'varchar', nullable: true })
+  // loginOtp: string | null;
+
+  // @Column({ type: 'timestamp', nullable: true })
+  // loginOtpExpiry: Date | null;
 
   @OneToMany(() => Application, (application) => application.user)
   applications: Application[];

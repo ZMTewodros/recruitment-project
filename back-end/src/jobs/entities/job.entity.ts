@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
-import { Application } from '../../applications/entities/application.entity';
+import { Application } from '../../applications/entities/applications.entity';
 
 @Entity('jobs')
 export class Job {
