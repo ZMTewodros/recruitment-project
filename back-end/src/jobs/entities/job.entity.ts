@@ -38,6 +38,7 @@ export class Job {
   @CreateDateColumn()
   posted_at: Date;
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   @ManyToOne(() => Company, (company) => company.jobs, { onDelete: 'CASCADE' })
   company: Company;
 

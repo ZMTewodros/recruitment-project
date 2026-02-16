@@ -1,4 +1,3 @@
-// src/applications/applications.controller.ts
 import {
   Controller,
   Post,

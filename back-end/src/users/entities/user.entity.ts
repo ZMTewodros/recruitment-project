@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
 import { Application } from '../../applications/entities/applications.entity';
 
@@ -60,6 +66,6 @@ export class User {
   @OneToMany(() => Application, (application) => application.user)
   applications: Application[];
 
-  @OneToMany(() => Company, (company) => company.user)
-  companies: Company[];
+  @OneToOne(() => Company, (company) => company.employer)
+  company: Company;
 }

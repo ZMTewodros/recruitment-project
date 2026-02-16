@@ -2,13 +2,12 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToMany,
-  ManyToOne,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
-import { Job } from '../../jobs/entities/job.entity';
 import { User } from '../../users/entities/user.entity';
 
-@Entity('companies')
+@Entity()
 export class Company {
   @PrimaryGeneratedColumn()
   id: number;
@@ -16,14 +15,17 @@ export class Company {
   @Column()
   name: string;
 
-  @Column()
-  location: string;
+  @Column({ type: 'text', nullable: true })
+  description: string;
 
-  @ManyToOne(() => User, (user) => user.companies, {
-    onDelete: 'CASCADE',
-  })
-  user: User;
+  @Column({ nullable: true })
+  logo: string; // store image URL
 
-  @OneToMany(() => Job, (job) => job.company)
-  jobs: Job[];
+  @Column({ nullable: true })
+  address: string;
+
+  @OneToOne(() => User)
+  @JoinColumn()
+  employer: User;
+  jobs: any;
 }
