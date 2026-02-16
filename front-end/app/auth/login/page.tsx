@@ -3,43 +3,70 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/app/lib/api';
-// import { useNotifications } from '../../components/Notification';
+ import { useNotifications } from '../../components/Notification';
 
 export default function LoginPage() {
   const router = useRouter();
-  // const notify = useNotifications();
+  const notify = useNotifications();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const [loading, setLoading] = useState(false);
 
+  function redirectByRole(role: string) {
+  switch (role) {
+    case 'jobseeker':
+      return '/jobseeker/dashboard';
+    case 'employer':
+      return '/employer/dashboard';
+    case 'admin':
+      return '/admin/dashboard';
+    default:
+      return '/';
+  }
+}
+
+
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-  
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const res = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+
+    localStorage.setItem('token', res.access_token);
 
     try {
-      const res = await apiFetch('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      });
-
-      localStorage.setItem('token', res.access_token);
-      try {
-        window.dispatchEvent(new Event('token-changed'));
-      } catch {
-        // ignore
-      }
-      notify.showSuccess('Login successful 🎉');
-
-      setTimeout(() => router.push('/jobs'), 1200);
-    } catch (err: any) {
-      notify.showError(err?.message || 'Invalid email or password');
-    } finally {
-      setLoading(false);
+      window.dispatchEvent(new Event('token-changed'));
+    } catch {
+      // ignore
     }
+
+    notify.showSuccess('Login successful 🎉');
+
+    // 🔥 Get role from response
+    const role = res?.user?.role;
+
+    if (!role) {
+      throw new Error('Invalid login response');
+    }
+
+    // 🔥 Redirect based on role
+    setTimeout(() => {
+      router.replace(redirectByRole(role));
+    }, 1000);
+
+  } catch (err: any) {
+    notify.showError(err?.message || 'Invalid email or password');
+  } finally {
+    setLoading(false);
   }
+}
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">

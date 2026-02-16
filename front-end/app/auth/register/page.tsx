@@ -2,15 +2,17 @@
 
 import { useState } from 'react';
 import { apiFetch } from '../../lib/api';
+import { useRouter } from 'next/navigation';  
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('USER');
+  const [role, setRole] = useState('jobseeker');
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
   e.preventDefault();
@@ -18,22 +20,35 @@ export default function RegisterPage() {
   setSuccess('');
 
   try {
-    // 🔹 example API call
-    await apiFetch('/auth/register', {
+    const data = await apiFetch('/auth/register', {
       method: 'POST',
       body: JSON.stringify({ name, email, password, role }),
     });
 
-    // ✅ SUCCESS
+    // backend returns the created user object directly (not { user })
+    const userRole = data?.role ?? data?.user?.role;
+
+    if (!userRole) {
+      throw new Error('Invalid server response');
+    }
+
+    // Optional: short success message before redirect
     setSuccess('Account created successfully 🎉');
 
-    // reset form
-    setName('');
-    setEmail('');
-    setPassword('');
+    setTimeout(() => {
+      if (userRole === 'jobseeker') {
+        router.replace('/jobseeker/dashboard');
+      }
 
-    // auto-hide toast after 3s
-    setTimeout(() => setSuccess(''), 3000);
+      if (userRole === 'employer') {
+        router.replace('/employer/dashboard');
+      }
+
+      if (userRole === 'admin') {
+        router.replace('/admin/dashboard');
+      }
+    }, 800);
+
   } catch (err: unknown) {
     if (err instanceof Error) {
       setError(err.message || 'Registration failed');
@@ -42,6 +57,51 @@ export default function RegisterPage() {
     }
   }
 }
+
+
+//   async function handleSubmit(e: React.FormEvent) {
+//   e.preventDefault();
+//   setError('');
+//   setSuccess('');
+
+//   try {
+//     // 🔹 example API call
+//     const data = await apiFetch('/auth/register', {
+//       method: 'POST',
+//       body: JSON.stringify({ name, email, password, role }),
+//     });
+
+//     // ✅ SUCCESS
+//     setSuccess('Account created successfully 🎉');
+
+//     // reset form
+//     // setName('');
+//     // setEmail('');
+//     // setPassword('');
+//     // setRole('jobseeker');
+
+//     // auto-hide toast after 3s
+//     setTimeout(() => setSuccess(''), 3000);
+//     // Redirect based on role
+//       if (data.user.role === "jobseeker") {
+//         router.push("/jobseeker/dashboard");
+//       }
+
+//       if (data.user.role === "employer") {
+//         router.push("/employer/dashboard");
+//       }
+  
+//   } 
+  
+   
+//   catch (err: unknown) {
+//     if (err instanceof Error) {
+//       setError(err.message || 'Registration failed');
+//     } else {
+//       setError('Registration failed');
+//     }
+//   }
+// }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">

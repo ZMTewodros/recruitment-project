@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
+import { useRouter } from 'next/navigation';
+
+
 const categories = [
   'Frontend',
   'Backend',
@@ -13,6 +16,22 @@ const categories = [
 ];
 
 export default function HomePage() {
+
+  const router = useRouter();
+
+function handleJobSeeker() {
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    router.push('/auth/register?role=jobseeker');
+    return;
+  }
+
+  router.push('/jobseeker/dashboard');
+}
+
+
+
   const [activeCategory, setActiveCategory] = useState('Frontend');
 
   return (
@@ -29,12 +48,13 @@ export default function HomePage() {
         </p>
 
         <div className="mt-8 flex justify-center gap-4">
-          <Link
-            href="/jobs"
-            className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700"
-          >
-            Browse Jobs
-          </Link>
+        <button
+          onClick={handleJobSeeker}
+          className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700"
+        >
+          Job Seeker
+        </button>
+
           <Link
             href="/auth/register"
             className="px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-700 font-medium hover:bg-gray-100 dark:hover:bg-gray-900"

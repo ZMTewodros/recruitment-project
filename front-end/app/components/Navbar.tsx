@@ -111,7 +111,7 @@ export default function Navbar() {
       <nav className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* LOGO */}
         <Link href="/" className="text-xl font-extrabold">
-          🎵 <span className="bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent">
+           <span className="bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent">
             JOB Marketpalce
           </span>
         </Link>
