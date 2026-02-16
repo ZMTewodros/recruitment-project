@@ -1,19 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
+  User,
   Briefcase,
-  Users,
-  PlusCircle,
+  FileText,
   LogOut,
   Menu,
   X,
 } from "lucide-react";
+import { useAuthStore } from "@/store/auth.store";
 
-export default function EmployerLayout({
+export default function JobseekerLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -22,26 +23,38 @@ export default function EmployerLayout({
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+
+  //  Profile completion guard
+  useEffect(() => {
+    if (!user) return;
+
+    if (!user.profileCompleted && pathname !== "/jobseeker/profile") {
+      router.replace("/jobseeker/profile");
+    }
+  }, [user, pathname, router]);
+
   const menuItems = [
     {
       name: "Dashboard",
-      href: "/employer/dashboard",
+      href: "/jobseeker/dashboard",
       icon: <LayoutDashboard size={18} />,
     },
     {
-      name: "Post Job",
-      href: "/employer/post-jobs",
-      icon: <PlusCircle size={18} />,
+      name: "Profile",
+      href: "/jobseeker/profile",
+      icon: <User size={18} />,
     },
     {
-      name: "My Jobs",
-      href: "/employer/jobs",
+      name: "Browse Jobs",
+      href: "/jobseeker/jobs",
       icon: <Briefcase size={18} />,
     },
     {
-      name: "Candidates",
-      href: "/employer/candidates",
-      icon: <Users size={18} />,
+      name: "Applications",
+      href: "/jobseeker/applications",
+      icon: <FileText size={18} />,
     },
   ];
 
@@ -63,7 +76,7 @@ export default function EmployerLayout({
         md:translate-x-0`}
       >
         <div className="p-6 text-xl font-bold border-b flex justify-between items-center">
-          Employer Panel
+          Jobseeker Panel
           <button
             className="md:hidden"
             onClick={() => setIsOpen(false)}
@@ -98,6 +111,7 @@ export default function EmployerLayout({
         <div className="p-4 border-t">
           <button
             onClick={() => {
+              logout();
               localStorage.removeItem("token");
               router.replace("/login");
             }}
@@ -121,24 +135,28 @@ export default function EmployerLayout({
             >
               <Menu size={22} />
             </button>
-            <h1 className="font-semibold text-lg">Welcome Back 👋</h1>
+            <h1 className="font-semibold text-lg">
+              Welcome back 👋
+            </h1>
           </div>
-    <Link
-      href="/employer/profile"
-      className="hidden sm:flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-indigo-600 transition"
-    >
-      <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
-        EP
-      </div>
-      Profile
-    </Link>
 
+          {/* PROFILE LINK */}
+          <Link
+            href="/jobseeker/profile"
+            className="hidden sm:flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-indigo-600 transition"
+          >
+            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
+              {user?.name?.charAt(0).toUpperCase()}
+            </div>
+            Profile
+          </Link>
         </header>
 
         {/* PAGE CONTENT */}
         <main className="flex-1 p-6">
           {children}
         </main>
+
       </div>
     </div>
   );
