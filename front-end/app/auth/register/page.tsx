@@ -59,49 +59,7 @@ export default function RegisterPage() {
 }
 
 
-//   async function handleSubmit(e: React.FormEvent) {
-//   e.preventDefault();
-//   setError('');
-//   setSuccess('');
 
-//   try {
-//     // 🔹 example API call
-//     const data = await apiFetch('/auth/register', {
-//       method: 'POST',
-//       body: JSON.stringify({ name, email, password, role }),
-//     });
-
-//     // ✅ SUCCESS
-//     setSuccess('Account created successfully 🎉');
-
-//     // reset form
-//     // setName('');
-//     // setEmail('');
-//     // setPassword('');
-//     // setRole('jobseeker');
-
-//     // auto-hide toast after 3s
-//     setTimeout(() => setSuccess(''), 3000);
-//     // Redirect based on role
-//       if (data.user.role === "jobseeker") {
-//         router.push("/jobseeker/dashboard");
-//       }
-
-//       if (data.user.role === "employer") {
-//         router.push("/employer/dashboard");
-//       }
-  
-//   } 
-  
-   
-//   catch (err: unknown) {
-//     if (err instanceof Error) {
-//       setError(err.message || 'Registration failed');
-//     } else {
-//       setError('Registration failed');
-//     }
-//   }
-// }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">

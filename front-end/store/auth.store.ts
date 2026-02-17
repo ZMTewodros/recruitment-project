@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 type AuthState = {
   user: any | null;
   logout: () => void;
+  setUser: (u: any | null) => void;
 };
 
 // Minimal client-side auth hook to satisfy existing imports.
@@ -29,7 +30,20 @@ export const useAuthStore = (selector: (s: AuthState) => any = (s) => s) => {
     setUser(null);
   };
 
-  const state: AuthState = { user, logout };
+  const setUserLocal = (u: any | null) => {
+    try {
+      if (u === null) {
+        localStorage.removeItem('user');
+      } else {
+        localStorage.setItem('user', JSON.stringify(u));
+      }
+    } catch (e) {
+      // ignore
+    }
+    setUser(u);
+  };
+
+  const state: AuthState = { user, logout, setUser: setUserLocal };
   return selector(state);
 };
 

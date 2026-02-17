@@ -8,13 +8,16 @@ import {
   User,
   Briefcase,
   FileText,
+  Users,
+  PlusCircle,
+  Shield,
   LogOut,
   Menu,
   X,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
 
-export default function JobseekerLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -26,37 +29,102 @@ export default function JobseekerLayout({
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
 
-  //  Profile completion guard
+  // 🔒 If not logged in
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [user, router]);
+
+  // 🔒 Profile completion guard
   useEffect(() => {
     if (!user) return;
 
-    if (!user.profileCompleted && pathname !== "/jobseeker/profile") {
-      router.replace("/jobseeker/profile");
+    if (!user.profileCompleted && !pathname.includes("/profile")) {
+      router.replace(`/${user.role}/profile`);
     }
   }, [user, pathname, router]);
 
-  const menuItems = [
-    {
-      name: "Dashboard",
-      href: "/jobseeker/dashboard",
-      icon: <LayoutDashboard size={18} />,
-    },
-    {
-      name: "Profile",
-      href: "/jobseeker/profile",
-      icon: <User size={18} />,
-    },
-    {
-      name: "Browse Jobs",
-      href: "/jobseeker/jobs",
-      icon: <Briefcase size={18} />,
-    },
-    {
-      name: "Applications",
-      href: "/jobseeker/applications",
-      icon: <FileText size={18} />,
-    },
-  ];
+  if (!user) return null;
+
+  // 🎯 ROLE BASED MENU
+  const roleMenus: Record<string, any[]> = {
+    jobseeker: [
+      {
+        name: "Dashboard",
+        href: "/jobseeker/dashboard",
+        icon: <LayoutDashboard size={18} />,
+      },
+      {
+        name: "Browse Jobs",
+        href: "/jobseeker/jobs",
+        icon: <Briefcase size={18} />,
+      },
+      {
+        name: "Applications",
+        href: "/jobseeker/applications",
+        icon: <FileText size={18} />,
+      },
+      {
+        name: "Profile",
+        href: "/jobseeker/profile",
+        icon: <User size={18} />,
+      },
+    ],
+
+    employer: [
+      {
+        name: "Dashboard",
+        href: "/employer/dashboard",
+        icon: <LayoutDashboard size={18} />,
+      },
+      {
+        name: "Post Job",
+        href: "/employer/post-jobs",
+        icon: <PlusCircle size={18} />,
+      },
+      {
+        name: "My Jobs",
+        href: "/employer/jobs",
+        icon: <Briefcase size={18} />,
+      },
+      {
+        name: "Candidates",
+        href: "/employer/candidates",
+        icon: <Users size={18} />,
+      },
+      {
+        name: "Profile",
+        href: "/employer/profile",
+        icon: <User size={18} />,
+      },
+    ],
+
+    admin: [
+      {
+        name: "Dashboard",
+        href: "/admin/dashboard",
+        icon: <LayoutDashboard size={18} />,
+      },
+      {
+        name: "Manage Users",
+        href: "/admin/users",
+        icon: <Users size={18} />,
+      },
+      {
+        name: "Manage Jobs",
+        href: "/admin/jobs",
+        icon: <Briefcase size={18} />,
+      },
+      {
+        name: "Profile",
+        href: "/admin/profile",
+        icon: <User size={18} />,
+      },
+    ],
+  };
+
+  const menuItems = roleMenus[user.role] || [];
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -76,7 +144,7 @@ export default function JobseekerLayout({
         md:translate-x-0`}
       >
         <div className="p-6 text-xl font-bold border-b flex justify-between items-center">
-          Jobseeker Panel
+          Recruitment Panel
           <button
             className="md:hidden"
             onClick={() => setIsOpen(false)}
@@ -140,16 +208,11 @@ export default function JobseekerLayout({
             </h1>
           </div>
 
-          {/* PROFILE LINK */}
-          <Link
-            href="/jobseeker/profile"
-            className="hidden sm:flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-indigo-600 transition"
-          >
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
-              {user?.name?.charAt(0).toUpperCase()}
+              {user.name?.charAt(0).toUpperCase()}
             </div>
-            Profile
-          </Link>
+          </div>
         </header>
 
         {/* PAGE CONTENT */}

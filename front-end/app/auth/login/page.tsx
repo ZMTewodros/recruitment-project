@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/app/lib/api';
- import { useNotifications } from '../../components/Notification';
+ import { useNotifications } from '../../../components/Notification';
+ import { useAuthStore } from "@/store/auth.store";
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,15 +15,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
 
   const [loading, setLoading] = useState(false);
+  const setUser = useAuthStore((state) => state.setUser);
+
 
   function redirectByRole(role: string) {
   switch (role) {
-    case 'jobseeker':
-      return '/jobseeker/dashboard';
-    case 'employer':
-      return '/employer/dashboard';
-    case 'admin':
-      return '/admin/dashboard';
+      case 'jobseeker':
+        return '/jobseeker/dashboard';
+      case 'employer':
+        return '/employer/dashboard';
+      case 'admin':
+        return '/admin/dashboard';
     default:
       return '/';
   }
@@ -39,7 +43,8 @@ export default function LoginPage() {
     });
 
     localStorage.setItem('token', res.access_token);
-
+    // 🔥 Save user in global state
+    setUser(res.user);
     try {
       window.dispatchEvent(new Event('token-changed'));
     } catch {
@@ -48,17 +53,22 @@ export default function LoginPage() {
 
     notify.showSuccess('Login successful 🎉');
 
-    // 🔥 Get role from response
-    const role = res?.user?.role;
+    // Debug: log response so we can inspect shape in dev
+    // eslint-disable-next-line no-console
+    console.log('login response', res);
+
+    // Get role from response and normalize
+    const role = String(res?.user?.role || '').toLowerCase();
 
     if (!role) {
       throw new Error('Invalid login response');
     }
 
-    // 🔥 Redirect based on role
+    // Redirect based on role (use push for predictable history behavior)
+    // small delay keeps the success notification visible briefly
     setTimeout(() => {
-      router.replace(redirectByRole(role));
-    }, 1000);
+      router.push(redirectByRole(role));
+    }, 800);
 
   } catch (err: any) {
     notify.showError(err?.message || 'Invalid email or password');
