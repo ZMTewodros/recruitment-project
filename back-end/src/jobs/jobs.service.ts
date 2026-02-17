@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Job } from './entities/job.entity';
+import { Job, JobStatus } from './entities/job.entity';
 import { Company } from '../companies/entities/company.entity';
 import { CreateJobDto } from './dto/create-job.dto';
 import { SearchJobDto } from './dto/search-job.dto';
@@ -34,10 +34,11 @@ export class JobsService {
       salary: createJobDto.salary,
       deadline: createJobDto.deadline,
       company,
-      status: 'open',
+      status: JobStatus.PENDING,
     });
 
-    return this.jobRepository.save(job);
+    const savedJob: Job = await this.jobRepository.save(job);
+    return savedJob;
   }
 
   // GET + SEARCH JOBS
@@ -103,5 +104,33 @@ export class JobsService {
       limit: take,
       data: jobs,
     };
+  }
+  // update a job
+  async update(id: number, updateJobDto: Partial<CreateJobDto>) {
+    const job = await this.jobRepository.findOne({ where: { id } });
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
+    Object.assign(job, updateJobDto); // merge changes
+    return this.jobRepository.save(job);
+  }
+  // delete a job
+  async remove(id: number) {
+    const result = await this.jobRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('Job not found');
+    }
+    return { message: 'Job deleted successfully' };
+  }
+  // change job status
+  async changeStatus(id: number, status: JobStatus) {
+    const job = await this.jobRepository.findOne({ where: { id } });
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
+    job.status = status;
+    return this.jobRepository.save(job);
   }
 }

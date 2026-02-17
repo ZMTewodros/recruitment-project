@@ -12,6 +12,8 @@ import { Application } from '../../applications/entities/applications.entity';
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
+  @Column({ default: true })
+  isActive: boolean;
 
   @Column()
   name: string;
@@ -65,7 +67,6 @@ export class User {
 
   @OneToMany(() => Application, (application) => application.user)
   applications: Application[];
-
-  @OneToOne(() => Company, (company) => company.employer)
+  @OneToOne(() => Company, (company) => company.user)
   company: Company;
 }

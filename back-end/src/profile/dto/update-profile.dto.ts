@@ -13,7 +13,6 @@ export class UpdateProfileDto {
   @IsString()
   address?: string;
   @IsOptional() @IsString() location?: string;
-
   @IsOptional()
   @IsString()
   bio?: string;

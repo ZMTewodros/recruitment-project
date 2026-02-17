@@ -11,6 +11,6 @@ export class RegisterDto {
   @MinLength(6, { message: 'Password must be at least 6 characters' })
   password: string;
 
-  @IsEnum(['jobseeker', 'employer', 'admin'])
+  @IsEnum(['jobseeker', 'employer'])
   role: string;
 }

@@ -14,6 +14,7 @@ export enum ApplicationStatus {
   SHORTLISTED = 'shortlisted',
   REJECTED = 'rejected',
   ACCEPTED = 'accepted',
+  INTERVIEWING = 'interviewing',
 }
 
 @Entity('applications')

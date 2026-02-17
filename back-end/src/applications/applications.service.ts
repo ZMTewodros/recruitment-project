@@ -27,29 +27,25 @@ export class ApplicationsService {
   async applyJob(userId: number, dto: ApplyJobDto, file?: Express.Multer.File) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     const job = await this.jobsRepository.findOne({
-      where: { id: dto.job_id },
+      where: { id: Number(dto.job_id) },
     });
 
     if (!user) throw new NotFoundException('User not found');
     if (!job) throw new NotFoundException('Job not found');
 
-    // Prevent double applications
     const existing = await this.applicationsRepository.findOne({
-      where: { user: { id: userId }, job: { id: dto.job_id } },
+      where: { user: { id: userId }, job: { id: Number(dto.job_id) } },
     });
     if (existing)
       throw new BadRequestException('You have already applied for this job');
 
     let cvUrl = dto.cv_file;
-
-    // If a new file is uploaded, send it to Google Drive
     if (file) {
       const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
-      if (!folderId) {
+      if (!folderId)
         throw new InternalServerErrorException(
           'Google Drive folder ID is not set',
         );
-      }
       cvUrl = await this.googleDriveService.uploadFile(file, folderId);
     }
 
@@ -61,6 +57,26 @@ export class ApplicationsService {
       status: ApplicationStatus.PENDING,
     });
 
+    return await this.applicationsRepository.save(application);
+  }
+
+  // NEW: Get all applicants for a specific job (Employer view)
+  async getJobApplications(jobId: number) {
+    return await this.applicationsRepository.find({
+      where: { job: { id: jobId } },
+      relations: ['user'], // This is critical for the frontend to show names/emails
+      order: { id: 'DESC' },
+    });
+  }
+
+  // NEW: Update application status (Employer action)
+  async updateStatus(applicationId: number, status: ApplicationStatus) {
+    const application = await this.applicationsRepository.findOne({
+      where: { id: applicationId },
+    });
+    if (!application) throw new NotFoundException('Application not found');
+
+    application.status = status;
     return await this.applicationsRepository.save(application);
   }
 

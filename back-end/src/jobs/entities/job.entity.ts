@@ -7,7 +7,14 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
-import { Application } from '../../applications/entities/applications.entity';
+import { Application } from '../../applications/entities/applications.entity'; // import your Application entity
+
+export enum JobStatus {
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+  PENDING = 'PENDING',
+  REJECTED = 'REJECTED',
+}
 
 @Entity('jobs')
 export class Job {
@@ -17,7 +24,7 @@ export class Job {
   @Column()
   title: string;
 
-  @Column('text')
+  @Column({ type: 'text' })
   description: string;
 
   @Column()
@@ -26,22 +33,27 @@ export class Job {
   @Column()
   location: string;
 
-  @Column({ type: 'decimal', nullable: true })
+  @Column('int')
   salary: number;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'date' })
   deadline: Date;
 
-  @Column({ default: 'open' })
-  status: string;
+  @Column({
+    type: 'enum',
+    enum: JobStatus,
+    default: JobStatus.PENDING,
+  })
+  status: JobStatus;
 
-  @CreateDateColumn()
-  posted_at: Date;
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  @ManyToOne(() => Company, (company) => company.jobs, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Company, (company) => company.jobs, {
+    onDelete: 'CASCADE',
+  })
   company: Company;
 
-  @OneToMany(() => Application, (app) => app.job)
+  @OneToMany(() => Application, (application) => application.job)
   applications: Application[];
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

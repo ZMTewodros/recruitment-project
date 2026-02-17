@@ -4,11 +4,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { JobsModule } from './jobs/jobs.module';
-import { CompaniesModule } from './companies/companies.module';
 import { AuthModule } from './auth/auth.module';
-import { RolesModule } from './roles/roles.module';
 import { ProfileModule } from './profile/profile.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { CompanyModule } from './companies/companies.module';
+import { AdminModule } from './admin/admin.module';
 @Module({
   imports: [
     // 1. Load the .env file globally
@@ -31,8 +31,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
     }),
     // 3. Register all feature modules
     UsersModule,
-    RolesModule,
-    CompaniesModule,
+    AdminModule,
+    CompanyModule,
     JobsModule,
     ApplicationsModule,
     AuthModule,
