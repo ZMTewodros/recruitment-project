@@ -50,18 +50,27 @@ export class GoogleDriveService {
         mimeType: file.mimetype,
         body: bufferStream,
       },
-      fields: 'id, webViewLink',
+      fields: 'id',
     });
+
+    const fileId = response.data.id;
+
+    if (!fileId) {
+      throw new InternalServerErrorException('Failed to get file ID');
+    }
 
     // Make file public
     await this.drive.permissions.create({
-      fileId: response.data.id!,
+      fileId,
       requestBody: {
         role: 'reader',
         type: 'anyone',
       },
     });
 
-    return response.data.webViewLink!;
+    // 🔥 THIS IS THE IMPORTANT PART
+    const directUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+
+    return directUrl;
   }
 }

@@ -70,6 +70,7 @@ export class UsersService {
         'email',
         'password',
         'role',
+        'profileCompleted',
         // 'loginOtp',
         // 'loginOtpExpiry',
       ],

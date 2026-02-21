@@ -1,14 +1,14 @@
 import {
   Controller,
+  Get,
+  Put,
   Post,
+  Body,
   UseGuards,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
   Req,
-  Get,
-  Put,
-  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -16,8 +16,8 @@ import { ProfileService } from './profile.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateCompanyDto } from '../companies/dto/update-company.dto';
 
-// Type-safe AuthRequest for JWT
 interface AuthRequest extends Request {
   user: {
     userId: number;
@@ -26,42 +26,65 @@ interface AuthRequest extends Request {
   };
 }
 
-// Type-safe callback type for fileFilter
 type FileFilterCallback = (error: Error | null, acceptFile: boolean) => void;
 
 @Controller('profile')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
+
   @Get('me')
   async getMyProfile(@Req() req: AuthRequest) {
-    return await this.profileService.getMyProfile(req.user.userId);
+    return this.profileService.getMyProfile(req.user.userId);
   }
 
   @Put('me')
   async updateMyProfile(
     @Req() req: AuthRequest,
-    @Body() updateProfileDto: UpdateProfileDto,
+    @Body() dto: UpdateProfileDto,
   ) {
-    return await this.profileService.updateMyProfile(
-      req.user.userId,
-      updateProfileDto,
-    );
+    return this.profileService.updateMyProfile(req.user.userId, dto);
+  }
+
+  @Get('company')
+  async getCompany(@Req() req: AuthRequest) {
+    return this.profileService.getCompany(req.user.userId);
+  }
+
+  @Put('company')
+  async updateCompany(@Req() req: AuthRequest, @Body() dto: UpdateCompanyDto) {
+    return this.profileService.updateCompany(req.user.userId, dto);
+  }
+
+  @Post('upload/avatar')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      fileFilter: (_req, file: Express.Multer.File, cb: FileFilterCallback) => {
+        const allowedExtensions = /\.(jpg|jpeg|png)$/;
+        if (!allowedExtensions.test(file.originalname.toLowerCase())) {
+          return cb(new BadRequestException('Only image files allowed'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadAvatar(
+    @Req() req: AuthRequest,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.profileService.uploadAvatar(req.user.userId, file);
   }
 
   @Post('upload/cv')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
-      fileFilter: (
-        _req: any,
-        file: Express.Multer.File,
-        cb: FileFilterCallback,
-      ) => {
+      fileFilter: (_req, file: Express.Multer.File, cb: FileFilterCallback) => {
         const allowedExtensions = /\.(pdf|doc|docx)$/;
         if (!allowedExtensions.test(file.originalname.toLowerCase())) {
           return cb(
-            new BadRequestException('Only document files are allowed!'),
+            new BadRequestException('Only document files allowed'),
             false,
           );
         }
@@ -73,35 +96,26 @@ export class ProfileController {
     @Req() req: AuthRequest,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) throw new BadRequestException('File is required');
-    return await this.profileService.uploadCVToDrive(req.user.userId, file);
+    return this.profileService.uploadCV(req.user.userId, file);
   }
 
-  @Post('upload/avatar')
+  @Post('upload/companyLogo')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
-      fileFilter: (
-        _req: any,
-        file: Express.Multer.File,
-        cb: FileFilterCallback,
-      ) => {
+      fileFilter: (_req, file: Express.Multer.File, cb: FileFilterCallback) => {
         const allowedExtensions = /\.(jpg|jpeg|png)$/;
         if (!allowedExtensions.test(file.originalname.toLowerCase())) {
-          return cb(
-            new BadRequestException('Only image files are allowed!'),
-            false,
-          );
+          return cb(new BadRequestException('Only image files allowed'), false);
         }
         cb(null, true);
       },
     }),
   )
-  async uploadAvatar(
+  async uploadCompanyLogo(
     @Req() req: AuthRequest,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) throw new BadRequestException('File is required');
-    return await this.profileService.uploadAvatarToDrive(req.user.userId, file);
+    return this.profileService.uploadCompanyLogo(req.user.userId, file);
   }
 }

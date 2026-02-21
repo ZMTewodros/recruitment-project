@@ -45,17 +45,14 @@ export class User {
   @Column({ nullable: true })
   avatar: string;
 
-  @Column({ nullable: true })
-  address: string;
+  @Column({ type: 'json', nullable: true })
+  experience: any[];
 
-  @Column({ type: 'text', nullable: true })
-  skills: string;
+  @Column({ type: 'json', nullable: true })
+  education: any[];
 
-  @Column({ type: 'text', nullable: true })
-  experience: string;
-
-  @Column({ type: 'text', nullable: true })
-  education: string;
+  @Column({ type: 'simple-array', nullable: true })
+  skills: string[];
 
   @Column({ nullable: true })
   cv: string;
@@ -64,7 +61,8 @@ export class User {
 
   // @Column({ type: 'timestamp', nullable: true })
   // loginOtpExpiry: Date | null;
-
+  @Column({ default: false })
+  profileCompleted: boolean;
   @OneToMany(() => Application, (application) => application.user)
   applications: Application[];
   @OneToOne(() => Company, (company) => company.user)

@@ -9,23 +9,29 @@ export class UpdateProfileDto {
   @IsString()
   phone?: string;
 
+  // @IsOptional()
+  // @IsString()
+  // address?: string;
   @IsOptional()
   @IsString()
-  address?: string;
-  @IsOptional() @IsString() location?: string;
+  location?: string;
   @IsOptional()
   @IsString()
   bio?: string;
 
   @IsOptional()
+  skills?: any[];
+
+  @IsOptional()
+  experience?: any[];
+
+  @IsOptional()
+  education?: any[];
+  @IsOptional()
   @IsString()
-  skills?: string;
+  avatar?: string;
 
   @IsOptional()
   @IsString()
-  experience?: string;
-
-  @IsOptional()
-  @IsString()
-  education?: string;
+  cv?: string;
 }
