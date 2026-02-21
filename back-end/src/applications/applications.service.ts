@@ -60,16 +60,14 @@ export class ApplicationsService {
     return await this.applicationsRepository.save(application);
   }
 
-  // NEW: Get all applicants for a specific job (Employer view)
   async getJobApplications(jobId: number) {
     return await this.applicationsRepository.find({
       where: { job: { id: jobId } },
-      relations: ['user'], // This is critical for the frontend to show names/emails
+      relations: ['user', 'job'],
       order: { id: 'DESC' },
     });
   }
 
-  // NEW: Update application status (Employer action)
   async updateStatus(applicationId: number, status: ApplicationStatus) {
     const application = await this.applicationsRepository.findOne({
       where: { id: applicationId },
@@ -84,6 +82,15 @@ export class ApplicationsService {
     return await this.applicationsRepository.find({
       where: { user: { id: userId } },
       relations: ['job', 'job.company'],
+      order: { id: 'DESC' },
+    });
+  }
+
+  // FIXED: Changed appRepo to applicationsRepository to match constructor
+  async findAllForEmployer(userId: number) {
+    return await this.applicationsRepository.find({
+      where: { job: { company: { user: { id: userId } } } },
+      relations: ['user', 'job'],
       order: { id: 'DESC' },
     });
   }

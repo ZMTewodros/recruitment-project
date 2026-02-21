@@ -22,7 +22,7 @@ import { ApplicationStatus } from './entities/applications.entity';
 @Controller('applications')
 @UseGuards(JwtAuthGuard)
 export class ApplicationsController {
-  constructor(private applicationsService: ApplicationsService) {}
+  constructor(private readonly applicationsService: ApplicationsService) {}
 
   @Post('apply')
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
@@ -35,27 +35,38 @@ export class ApplicationsController {
     if (!file && !dto.cv_file) {
       throw new BadRequestException('Please upload a CV file');
     }
-    return this.applicationsService.applyJob(userId, dto, file);
+    return await this.applicationsService.applyJob(userId, dto, file);
   }
 
   @Get('my')
   async getMyApplications(@Req() req: Request & { user: { userId: string } }) {
     const userId = Number(req.user.userId);
-    return this.applicationsService.getUserApplications(userId);
+    return await this.applicationsService.getUserApplications(userId);
   }
 
-  // NEW: Route for Employers to see applicants for their jobs
+  // Static routes should come before dynamic ':jobId' routes
+  @Get('employer/all')
+  async getEmployerApplications(
+    @Req() req: Request & { user: { userId: string } },
+  ) {
+    const userId = Number(req.user.userId);
+    return await this.applicationsService.findAllForEmployer(userId);
+  }
+
   @Get('job/:jobId')
   async getJobApplications(@Param('jobId') jobId: string) {
-    return this.applicationsService.getJobApplications(Number(jobId));
+    const id = Number(jobId);
+    if (isNaN(id)) {
+      throw new BadRequestException('Invalid job ID');
+    }
+    return await this.applicationsService.getJobApplications(id);
   }
 
-  // NEW: Route for Employers to change status
   @Patch(':id/status')
   async updateStatus(
     @Param('id') id: string,
     @Body('status') status: ApplicationStatus,
   ) {
-    return this.applicationsService.updateStatus(Number(id), status);
+    return await this.applicationsService.updateStatus(Number(id), status);
   }
 }
