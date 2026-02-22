@@ -1,3 +1,4 @@
+// src/jobs/jobs.controller.ts
 import {
   Controller,
   Get,
@@ -16,37 +17,35 @@ import { CreateJobDto } from './dto/create-job.dto';
 import { JobStatus } from './entities/job.entity';
 import { SearchJobDto } from './dto/search-job.dto';
 
-// src/jobs/jobs.controller.ts
 @Controller('jobs')
-@UseGuards(JwtAuthGuard)
+// Removed class-level JwtAuthGuard to make GET routes public
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
-  @Get()
+  @Get() // Public
   async findAll(@Query() searchDto: SearchJobDto) {
     return this.jobsService.findAll(searchDto);
   }
 
-  // 1. Specific routes MUST come before generic :id routes
-  @Get('my')
+  @Get('my') // Private
+  @UseGuards(JwtAuthGuard)
   getMyJobs(@Req() req) {
-    // req.user.userId comes from your JwtStrategy
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     return this.jobsService.getEmployerJobs(req.user.userId);
   }
 
-  // 2. Generic :id route comes after
-  @Get(':id')
+  @Get(':id') // Public
   async findOne(@Param('id') id: string) {
     return this.jobsService.findOne(+id);
   }
 
-  @Post()
+  @Post() // Private
+  @UseGuards(JwtAuthGuard)
   create(@Body() createJobDto: CreateJobDto) {
     return this.jobsService.create(createJobDto);
   }
 
-  @Patch(':id')
+  @Patch(':id') // Private
+  @UseGuards(JwtAuthGuard)
   updateJob(
     @Param('id') id: string,
     @Body() updateJobDto: Partial<CreateJobDto>,
@@ -54,12 +53,14 @@ export class JobsController {
     return this.jobsService.update(+id, updateJobDto);
   }
 
-  @Delete(':id')
+  @Delete(':id') // Private
+  @UseGuards(JwtAuthGuard)
   deleteJob(@Param('id') id: string) {
     return this.jobsService.remove(+id);
   }
 
-  @Patch(':id/status')
+  @Patch(':id/status') // Private
+  @UseGuards(JwtAuthGuard)
   updateStatus(@Param('id') id: string, @Body('status') status: JobStatus) {
     return this.jobsService.changeStatus(+id, status);
   }

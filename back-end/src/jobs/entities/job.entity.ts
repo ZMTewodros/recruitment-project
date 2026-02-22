@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
-import { Application } from '../../applications/entities/applications.entity'; // import your Application entity
+import { Application } from '../../applications/entities/applications.entity';
 
 export enum JobStatus {
   OPEN = 'OPEN',
@@ -42,7 +42,7 @@ export class Job {
   @Column({
     type: 'enum',
     enum: JobStatus,
-    default: JobStatus.PENDING,
+    default: JobStatus.OPEN, // Changed to OPEN for immediate visibility
   })
   status: JobStatus;
 

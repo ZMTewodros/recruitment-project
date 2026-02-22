@@ -67,12 +67,15 @@ export class ApplicationsService {
       order: { id: 'DESC' },
     });
   }
-
   async updateStatus(applicationId: number, status: ApplicationStatus) {
     const application = await this.applicationsRepository.findOne({
       where: { id: applicationId },
     });
+
     if (!application) throw new NotFoundException('Application not found');
+
+    // Optional: Prevent changing status if already accepted/rejected
+    // if (application.status === ApplicationStatus.ACCEPTED) return application;
 
     application.status = status;
     return await this.applicationsRepository.save(application);
