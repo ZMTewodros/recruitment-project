@@ -1,3 +1,4 @@
+// company.service.ts
 import {
   Injectable,
   ForbiddenException,
@@ -49,33 +50,43 @@ export class CompanyService {
     });
   }
 
-  // --- NEW: Dashboard Stats Logic ---
   async getDashboardStats(userId: number) {
     const company = await this.getMyCompany(userId);
     if (!company) throw new NotFoundException('Company not found');
 
+    const companyId = company.id;
+
     // 1. Total Jobs Posted
     const totalJobs = await this.jobRepo.count({
-      where: { company: { id: company.id } },
+      where: { company: { id: companyId } },
     });
 
-    // 2. Total Applicants (across all jobs belonging to this company)
+    // 2. Total Applicants
     const totalApplicants = await this.appRepo.count({
-      where: { job: { company: { id: company.id } } },
+      where: { job: { company: { id: companyId } } },
     });
 
-    // 3. Shortlisted Candidates (Status: Interviewing)
+    // 3. Shortlisted Candidates
     const shortlisted = await this.appRepo.count({
       where: {
-        job: { company: { id: company.id } },
-        status: ApplicationStatus.INTERVIEWING, // Ensure this matches your Enum
+        job: { company: { id: companyId } },
+        status: ApplicationStatus.SHORTLISTED,
       },
+    });
+
+    // 4. Recent Activity (Last 5 applications)
+    const recentApplications = await this.appRepo.find({
+      where: { job: { company: { id: companyId } } },
+      relations: ['user', 'job'],
+      order: { id: 'DESC' },
+      take: 5,
     });
 
     return {
       totalJobs,
       totalApplicants,
       shortlisted,
+      recentApplications,
       companyName: company.name,
     };
   }

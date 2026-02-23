@@ -9,6 +9,7 @@ import { ProfileModule } from './profile/profile.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CompanyModule } from './companies/companies.module';
 import { AdminModule } from './admin/admin.module';
+import { MessagesModule } from './messages/messages.module';
 @Module({
   imports: [
     // 1. Load the .env file globally
@@ -38,6 +39,7 @@ import { AdminModule } from './admin/admin.module';
     AuthModule,
     ProfileModule,
     DashboardModule,
+    MessagesModule,
   ],
 })
 export class AppModule {}

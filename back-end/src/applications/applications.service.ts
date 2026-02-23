@@ -1,3 +1,4 @@
+// applications.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -11,6 +12,7 @@ import { ApplyJobDto } from './dto/apply-job.dto';
 import { User } from '../users/entities/user.entity';
 import { Job } from '../jobs/entities/job.entity';
 import { GoogleDriveService } from '../common/google-drive.service';
+import { MailService } from '../auth/mail.service'; // Ensure path is correct
 
 @Injectable()
 export class ApplicationsService {
@@ -22,7 +24,46 @@ export class ApplicationsService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private googleDriveService: GoogleDriveService,
+    private mailService: MailService,
   ) {}
+
+  async updateStatus(applicationId: number, status: ApplicationStatus) {
+    const application = await this.applicationsRepository.findOne({
+      where: { id: applicationId },
+      relations: ['user', 'job'],
+    });
+
+    if (!application) throw new NotFoundException('Application not found');
+
+    // Business Logic: Don't allow changes if already hired or rejected
+    if (
+      application.status === ApplicationStatus.ACCEPTED ||
+      application.status === ApplicationStatus.REJECTED
+    ) {
+      throw new BadRequestException(
+        'Cannot change status of a finalized application.',
+      );
+    }
+
+    application.status = status;
+    const updatedApplication =
+      await this.applicationsRepository.save(application);
+
+    // --- AUTOMATIC EMAIL NOTIFICATION ---
+    try {
+      await this.mailService.sendStatusUpdateEmail(
+        application.user.email,
+        application.user.name,
+        application.job.title,
+        status,
+      );
+    } catch (error) {
+      // Log error but don't fail the request; the DB status is already updated
+      console.error('Email notification failed to send:', error);
+    }
+
+    return updatedApplication;
+  }
 
   async applyJob(userId: number, dto: ApplyJobDto, file?: Express.Multer.File) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
@@ -67,19 +108,6 @@ export class ApplicationsService {
       order: { id: 'DESC' },
     });
   }
-  async updateStatus(applicationId: number, status: ApplicationStatus) {
-    const application = await this.applicationsRepository.findOne({
-      where: { id: applicationId },
-    });
-
-    if (!application) throw new NotFoundException('Application not found');
-
-    // Optional: Prevent changing status if already accepted/rejected
-    // if (application.status === ApplicationStatus.ACCEPTED) return application;
-
-    application.status = status;
-    return await this.applicationsRepository.save(application);
-  }
 
   async getUserApplications(userId: number) {
     return await this.applicationsRepository.find({
@@ -89,7 +117,6 @@ export class ApplicationsService {
     });
   }
 
-  // FIXED: Changed appRepo to applicationsRepository to match constructor
   async findAllForEmployer(userId: number) {
     return await this.applicationsRepository.find({
       where: { job: { company: { user: { id: userId } } } },

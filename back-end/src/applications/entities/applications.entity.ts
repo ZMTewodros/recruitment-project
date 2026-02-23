@@ -11,6 +11,7 @@ import { User } from '../../users/entities/user.entity';
 
 export enum ApplicationStatus {
   PENDING = 'pending',
+  IN_REVIEW = 'in_review',
   SHORTLISTED = 'shortlisted',
   REJECTED = 'rejected',
   ACCEPTED = 'accepted',

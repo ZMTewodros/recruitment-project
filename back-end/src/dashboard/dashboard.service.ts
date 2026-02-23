@@ -1,9 +1,13 @@
-import { Injectable } from '@nestjs/common';
+// src/dashboard/dashboard.service.ts
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SavedJob } from '../dashboard/entities/saved-job.entity';
 import { Notification } from '../dashboard/entities/notification.entity';
-import { Application } from '../applications/entities/applications.entity';
+import {
+  Application,
+  ApplicationStatus,
+} from '../applications/entities/applications.entity';
 
 @Injectable()
 export class DashboardService {
@@ -17,47 +21,60 @@ export class DashboardService {
   ) {}
 
   async getJobSeekerData(userId: number) {
-    const [applied, saved, notifications] = await Promise.all([
-      this.applicationRepo.find({
-        where: { user: { id: userId } },
-        relations: ['job', 'job.company'],
-      }),
-      this.savedJobRepo.find({
-        where: { user: { id: userId } },
-        relations: ['job', 'job.company'],
-      }),
-      this.notificationRepo.find({
-        where: { user: { id: userId } },
-        order: { createdAt: 'DESC' },
-        take: 10,
-      }),
-    ]);
+    try {
+      const [applied, saved, notifications] = await Promise.all([
+        this.applicationRepo.find({
+          where: { user: { id: userId } },
+          // Path: Application -> Job -> Company -> User
+          relations: ['job', 'job.company', 'job.company.user'],
+          order: { id: 'DESC' },
+        }),
+        this.savedJobRepo.find({
+          where: { user: { id: userId } },
+          relations: ['job', 'job.company'],
+          order: { savedAt: 'DESC' },
+        }),
+        this.notificationRepo.find({
+          where: { user: { id: userId } },
+          order: { createdAt: 'DESC' },
+          take: 10,
+        }),
+      ]);
 
-    return {
-      appliedJobs: applied,
-      savedJobs: saved,
-      notifications: notifications,
-      stats: {
-        appliedCount: applied.length,
-        savedCount: saved.length,
-        unreadNotifications: notifications.filter((n) => !n.isRead).length,
-      },
-    };
-  }
+      const shortlistedCount = applied.filter(
+        (app) =>
+          app.status === ApplicationStatus.SHORTLISTED ||
+          app.status === ApplicationStatus.ACCEPTED,
+      ).length;
 
-  // Used by applications or internally
-  async createNotification(userId: number, message: string) {
-    return this.notificationRepo.save({ user: { id: userId }, message });
+      const pendingCount = applied.filter(
+        (app) => app.status === ApplicationStatus.PENDING,
+      ).length;
+
+      return {
+        appliedJobs: applied,
+        savedJobs: saved,
+        notifications: notifications,
+        stats: {
+          appliedCount: applied.length,
+          shortlistedCount: shortlistedCount,
+          pendingCount: pendingCount,
+          savedCount: saved.length,
+          unreadNotifications: notifications.filter((n) => !n.isRead).length,
+        },
+      };
+    } catch (error) {
+      console.error('DASHBOARD_ERROR:', error);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async saveJob(userId: number, jobId: number) {
     const existing = await this.savedJobRepo.findOne({
       where: { user: { id: userId }, job: { id: jobId } },
     });
+    if (existing) return { message: 'Already saved' };
 
-    if (existing) {
-      return { message: 'Already saved' };
-    }
     return this.savedJobRepo.save({
       user: { id: userId },
       job: { id: jobId },
@@ -65,14 +82,14 @@ export class DashboardService {
   }
 
   async unsaveJob(userId: number, jobId: number) {
-    return this.savedJobRepo.delete({
+    await this.savedJobRepo.delete({
       user: { id: userId },
       job: { id: jobId },
     });
+    return { success: true };
   }
 
   async markAsRead(userId: number, notificationId: number) {
-    // Only let user mark their own notifications
     const notif = await this.notificationRepo.findOne({
       where: { id: notificationId, user: { id: userId } },
     });
