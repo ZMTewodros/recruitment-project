@@ -1,190 +1,120 @@
-'use client';
-
-import { useState } from 'react';
-import Link from 'next/link';
-
-import { useRouter } from 'next/navigation';
-
-
-const categories = [
-  'Frontend',
-  'Backend',
-  'Design',
-  'Product',
-  'Marketing',
-  'Data',
-];
+"use client";
+import Link from "next/link";
+import { useAuth } from "@/app/context/AuthContext";
+import Image from "next/image";
 
 export default function HomePage() {
-
-  const router = useRouter();
-
-function handleJobSeeker() {
-  const token = localStorage.getItem('token');
-
-  if (!token) {
-    router.push('/auth/register?role=jobseeker');
-    return;
-  }
-
-  router.push('/jobseeker/dashboard');
-}
-
-
-
-  const [activeCategory, setActiveCategory] = useState('Frontend');
+  const { user, logout } = useAuth();
 
   return (
-    <main className="bg-gray-50 dark:bg-gray-950">
-      {/* HERO */}
-      <section className="max-w-7xl mx-auto px-6 py-24 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-          Discover Jobs That <span className="text-indigo-600">Fit You</span>
-        </h1>
-
-        <p className="mt-4 max-w-2xl mx-auto text-gray-600 dark:text-gray-400">
-          Explore real opportunities from growing companies — no signup
-          required.
-        </p>
-
-        <div className="mt-8 flex justify-center gap-4">
-        <button
-          onClick={handleJobSeeker}
-          className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700"
-        >
-          Job Seeker
-        </button>
-
-          <Link
-            href="/auth/register"
-            className="px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-700 font-medium hover:bg-gray-100 dark:hover:bg-gray-900"
-          >
-            Create Account
+    <div className="min-h-screen bg-white font-sans selection:bg-blue-100 selection:text-blue-600">
+      {/* --- Navbar --- */}
+      <nav className="max-w-7xl mx-auto flex justify-between items-center p-6 lg:px-12">
+        <Link href="/" className="text-2xl font-black text-blue-600 italic tracking-tighter">
+          RECRUIT.ME
+        </Link>
+        
+        <div className="flex items-center gap-8">
+          <Link href="/jobs" className="text-gray-600 font-bold hover:text-blue-600 transition">
+            Explore Jobs
           </Link>
-        </div>
-      </section>
-
-      {/* INTERACTIVE CATEGORIES */}
-      <section className="max-w-7xl mx-auto px-6 py-16">
-        <h2 className="text-2xl font-semibold text-center mb-8">
-          Explore by Category
-        </h2>
-
-        <div className="flex flex-wrap justify-center gap-3 mb-10">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-5 py-2 rounded-full border transition ${
-                activeCategory === cat
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* PREVIEW CARDS */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:shadow-md transition"
-            >
-              <h3 className="font-semibold text-lg">
-                {activeCategory} Engineer
-              </h3>
-              <p className="text-sm text-gray-500">Company {i}</p>
-
-              <div className="mt-3 flex gap-2 text-xs">
-                <span className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800">
-                  Remote
-                </span>
-                <span className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800">
-                  $70k–$90k
-                </span>
-              </div>
-
-              <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                Preview jobs related to {activeCategory.toLowerCase()} roles.
-              </p>
+          
+          {/* REPLACED: Dashboard logic removed. Now shows Profile if logged in, otherwise Login. */}
+          {user ? (
+            <div className="flex items-center gap-6">
+               <Link href="/profile" className="text-gray-900 font-black hover:text-blue-600 transition">
+                My Profile
+              </Link>
+              <button 
+                onClick={logout}
+                className="px-6 py-2 bg-gray-100 text-gray-600 rounded-full font-bold hover:bg-gray-200 transition"
+              >
+                Logout
+              </button>
             </div>
-          ))}
+          ) : (
+            <Link href="/login" className="text-gray-900 font-black hover:text-blue-600 transition">
+              Login
+            </Link>
+          )}
         </div>
-      </section>
+      </nav>
 
-      {/* SEARCH PREVIEW */}
-      <section className="bg-white dark:bg-gray-900 border-y border-gray-200 dark:border-gray-800">
-        <div className="max-w-5xl mx-auto px-6 py-16 text-center">
-          <h2 className="text-2xl font-semibold">
-            Search Without Creating an Account
-          </h2>
-          <p className="mt-3 text-gray-500">
-            Try searching — sign up only when you’re ready to apply.
+      {/* --- Hero Section --- */}
+      <main className="max-w-7xl mx-auto px-6 lg:px-12 py-16 lg:py-24 grid lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <div className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-widest text-blue-600 uppercase bg-blue-50 rounded-full">
+            Next-Gen Recruitment
+          </div>
+          <h1 className="text-6xl lg:text-8xl font-black text-gray-900 leading-[0.9] tracking-tight">
+            WORK <br /><span className="text-blue-600">REDEFINED.</span>
+          </h1>
+          <p className="mt-8 text-xl text-gray-500 max-w-lg leading-relaxed">
+            The modern standard for recruitment. Seamlessly connecting high-growth companies with the world&apos;s best talent.
           </p>
+          
+          <div className="mt-12 flex flex-col sm:flex-row gap-5 justify-center lg:justify-start">
+            <Link href="/register" className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-xl hover:translate-y-[-4px] transition-all shadow-2xl shadow-blue-300 text-center">
+              Find a Job
+            </Link>
+            <Link href="/register" className="px-10 py-5 bg-white border-2 border-gray-100 text-gray-900 rounded-2xl font-black text-xl hover:bg-gray-50 transition-all text-center">
+              Hire Talent
+            </Link>
+          </div>
 
-          <div className="mt-6 flex flex-col md:flex-row gap-4">
-            <input
-              disabled
-              placeholder="Job title or keyword"
-              className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
-            />
-            <input
-              disabled
-              placeholder="Location"
-              className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
-            />
-            <button
-              disabled
-              className="px-6 py-3 rounded-lg bg-indigo-600 text-white opacity-50 cursor-not-allowed"
-            >
-              Search
-            </button>
+          <div className="mt-12 flex items-center justify-center lg:justify-start gap-4">
+            <div className="flex -space-x-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="w-12 h-12 rounded-full border-4 border-white bg-gray-200 shadow-sm overflow-hidden relative">
+                   <Image 
+                    src={`https://ui-avatars.com/api/?name=User+${i}&background=random`} 
+                    fill 
+                    alt="Trusted User" 
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-gray-400 font-medium italic">
+              Trusted by <span className="text-gray-900 font-bold">10,000+</span> professionals
+            </p>
           </div>
         </div>
-      </section>
 
-      {/* WHY US */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <h2 className="text-2xl font-semibold text-center mb-12">
-          Why Job Seekers Choose Us
-        </h2>
-
-        <div className="grid md:grid-cols-3 gap-8 text-center">
-          {[
-            ['No Spam', 'Only real jobs from verified companies'],
-            ['Remote Friendly', 'Work from anywhere opportunities'],
-            ['Fast Apply', 'Simple application process'],
-          ].map(([title, desc]) => (
-            <div key={title}>
-              <div className="mx-auto w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
-                ✓
-              </div>
-              <h3 className="mt-4 font-semibold">{title}</h3>
-              <p className="text-sm text-gray-500 mt-2">{desc}</p>
-            </div>
-          ))}
+        {/* --- Hero Visual Card --- */}
+        <div className="relative group">
+          <div className="bg-gradient-to-tr from-blue-600 to-indigo-400 w-full aspect-square rounded-[60px] rotate-3 absolute inset-0 -z-10 opacity-10 group-hover:rotate-6 transition-transform duration-700"></div>
+          <div className="bg-white border border-gray-100 rounded-[40px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] p-10 relative overflow-hidden">
+             <div className="flex justify-between items-center mb-10">
+                <div className="space-y-3">
+                  <div className="h-4 w-40 bg-gray-100 rounded-full"></div>
+                  <div className="h-4 w-24 bg-gray-50 rounded-full"></div>
+                </div>
+                <div className="h-14 w-14 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200 flex items-center justify-center">
+                  <span className="text-white font-bold text-xs uppercase tracking-tighter">App</span>
+                </div>
+             </div>
+             
+             <div className="space-y-8">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className={`flex gap-5 items-center ${i === 1 ? 'opacity-100' : 'opacity-40'}`}>
+                    <div className="w-14 h-14 bg-gray-100 rounded-2xl"></div>
+                    <div className="flex-1 space-y-3">
+                      <div className="h-3.5 w-full bg-gray-100 rounded-full"></div>
+                      <div className="h-3.5 w-2/3 bg-gray-50 rounded-full"></div>
+                    </div>
+                  </div>
+                ))}
+             </div>
+             <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+          </div>
         </div>
-      </section>
+      </main>
 
-      {/* FINAL CTA */}
-      <section className="text-center px-6 py-24 bg-indigo-600 text-white">
-        <h2 className="text-3xl font-bold">
-          Ready When You Are
-        </h2>
-        <p className="mt-3 text-indigo-100">
-          Create an account only when you’re ready to apply.
+      <footer className="max-w-7xl mx-auto p-12 text-center border-t border-gray-50 mt-10">
+        <p className="text-gray-400 font-bold tracking-widest text-[10px] uppercase">
+          Built with NestJS • Next.js 14 • TailwindCSS
         </p>
-
-        <Link
-          href="/auth/register"
-          className="inline-block mt-6 px-8 py-3 rounded-lg bg-white text-indigo-600 font-medium hover:bg-gray-100"
-        >
-          Get Started Free
-        </Link>
-      </section>
-    </main>
+      </footer>
+    </div>
   );
 }

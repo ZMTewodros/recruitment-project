@@ -1,161 +1,192 @@
-'use client';
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/app/context/AuthContext";
+import { apiRequest } from "@/app/lib/api";
+import { MessageSquare, Star, AlertCircle, Clock } from "lucide-react";
+import Link from "next/link";
 
-import { useState } from 'react';
- import Link from 'next/link';
+export default function JobSeekerDashboard() {
+  const { user, token } = useAuth();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-const jobs = [
-  {
-    id: 1,
-    title: 'Build a Modern Landing Page',
-    company: 'Startup Africa',
-    location: 'Remote',
-    budget: '$800 - $1200',
-    type: 'Contract',
-    skills: ['React', 'Tailwind', 'UI/UX'],
-    verified: true,
-  },
-  {
-    id: 2,
-    title: 'Mobile App UI Design',
-    company: 'Creative Labs',
-    location: 'Nigeria',
-    budget: '$500 - $900',
-    type: 'Freelance',
-    skills: ['Figma', 'UX Research'],
-    verified: false,
-  },
-  {
-    id: 3,
-    title: 'Full Stack Developer Needed',
-    company: 'Tech Solutions',
-    location: 'Kenya',
-    budget: '$1500 - $2500',
-    type: 'Full-time',
-    skills: ['Next.js', 'Node.js', 'MongoDB'],
-    verified: true,
-  },
-];
+  const refreshData = useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await apiRequest("/dashboard/jobseeker", "GET", null, token);
+      setData(result);
+    } catch (err: any) {
+      console.error("Dashboard load failed", err);
+      setError(err.message || "Failed to load dashboard");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
-export default function JobsPage() {
-  const [search, setSearch] = useState('');
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
-  const filteredJobs = jobs.filter((job) =>
-    job.title.toLowerCase().includes(search.toLowerCase())
+  // Resolves the Employer's User ID from the application object
+  const findEmployerId = (app: any) => {
+    return (
+      app.job?.company?.user?.id || 
+      app.job?.company?.userId || 
+      null
+    );
+  };
+
+  if (loading) return (
+    <div className="h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
+        <p className="tracking-widest uppercase text-xs font-bold text-blue-600">Loading AfriHire...</p>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="h-screen flex items-center justify-center p-6">
+      <div className="text-center bg-white p-10 rounded-[32px] shadow-xl border border-red-100">
+        <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
+        <h2 className="text-2xl font-black text-slate-900">Oops! Something went wrong</h2>
+        <p className="text-slate-500 mt-2 mb-6">{error}</p>
+        <button onClick={refreshData} className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold">Try Again</button>
+      </div>
+    </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* HEADER SEARCH */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row gap-4">
-          <input
-            type="text"
-            placeholder="Search jobs..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
-          />
+    <div className="max-w-7xl mx-auto space-y-10 p-6">
+      <header>
+        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+          Welcome back, {user?.name || 'User'}! 👋
+        </h1>
+        <p className="text-slate-500 mt-2">Your application pipeline at a glance.</p>
+      </header>
 
-          <button className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700">
-            Search
-          </button>
-        </div>
+      {/* Stats Grid - Fixed precise filtering logic */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <StatCard 
+          label="Applied Jobs" 
+          value={data?.appliedJobs?.length || 0} 
+          color="blue" 
+          icon={<Star size={24} fill="currentColor" />} 
+        />
+        <StatCard 
+          label="Shortlisted" 
+          value={
+            data?.appliedJobs?.filter((app: any) => 
+              app.status?.toLowerCase() === 'shortlisted'
+            ).length || 0
+          } 
+          color="emerald" 
+          icon={<Star size={24} fill="currentColor" />} 
+        />
+        <StatCard 
+          label="Pending" 
+          value={
+            data?.appliedJobs?.filter((app: any) => 
+              !['shortlisted', 'accepted', 'rejected'].includes(app.status?.toLowerCase())
+            ).length || 0
+          } 
+          color="orange" 
+          icon={<Clock size={24} />} 
+        />
       </div>
 
-      {/* MAIN CONTENT */}
-      <div className="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-4 gap-8">
-        {/* SIDEBAR FILTERS */}
-        <aside className="md:col-span-1 space-y-6">
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800">
-            <h3 className="font-semibold mb-4">Job Type</h3>
-            <div className="space-y-2 text-sm">
-              {['All', 'Full-time', 'Freelance', 'Contract'].map((type) => (
-                <button
-                  key={type}
-                  className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-50">
+          <h2 className="font-black text-slate-900 uppercase tracking-widest text-sm">Application Status</h2>
+        </div>
+        <table className="w-full text-left">
+          <thead className="bg-slate-50/50">
+            <tr>
+              <th className="p-6 text-xs font-black uppercase tracking-widest text-slate-400">Job Position</th>
+              <th className="p-6 text-xs font-black uppercase tracking-widest text-slate-400">Company</th>
+              <th className="p-6 text-xs font-black uppercase tracking-widest text-slate-400 text-center">Status</th>
+              <th className="p-6 text-xs font-black uppercase tracking-widest text-slate-400 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-50">
+            {data?.appliedJobs?.length > 0 ? (
+              data.appliedJobs.map((app: any) => {
+                const targetId = findEmployerId(app);
+                const status = app.status?.toLowerCase();
+                const isProcessable = ['shortlisted', 'accepted'].includes(status);
+                
+                return (
+                  <tr key={app.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-6 font-bold text-slate-800">{app.job?.title || "Untitled Position"}</td>
+                    <td className="p-6 text-slate-500">{app.job?.company?.name || "Company"}</td>
+                    <td className="p-6 text-center">
+                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase ${
+                        status === 'shortlisted' || status === 'accepted' 
+                          ? 'bg-emerald-100 text-emerald-600' 
+                          : status === 'rejected' 
+                          ? 'bg-red-100 text-red-600' 
+                          : 'bg-orange-100 text-orange-600'
+                      }`}>
+                        {app.status}
+                      </span>
+                    </td>
+                    <td className="p-6 text-center">
+                      {isProcessable && targetId ? (
+                        <Link 
+                          href={`/jobseeker/messages?employerId=${targetId}&company=${encodeURIComponent(app.job?.company?.name || "Employer")}`}
+                          className="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-blue-700 transition-all inline-flex items-center gap-2 shadow-sm hover:shadow-blue-200"
+                        >
+                          <MessageSquare size={16} /> Chat
+                        </Link>
+                      ) : (
+                        <span className="text-slate-300 text-xs italic font-medium">
+                          {status === 'rejected' ? 'Application Closed' : 'Awaiting Review'}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={4} className="p-20 text-center">
+                  <p className="text-slate-400 italic">No applications found.</p>
+                  <Link href="/browse" className="text-blue-600 font-bold text-sm mt-2 inline-block underline">Browse jobs now</Link>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800">
-            <h3 className="font-semibold mb-4">Budget</h3>
-            <div className="space-y-2 text-sm">
-              {['<$500', '$500-$1000', '$1000-$3000', '$3000+'].map(
-                (range) => (
-                  <button
-                    key={range}
-                    className="block w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    {range}
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-        </aside>
+interface StatCardProps {
+  label: string;
+  value: number;
+  color: "blue" | "emerald" | "orange";
+  icon: React.ReactNode;
+}
 
-        {/* JOB LIST */}
-        <section className="md:col-span-3 space-y-6">
-          {filteredJobs.length === 0 && (
-            <p className="text-gray-500">No jobs found.</p>
-          )}
-
-          {filteredJobs.map((job) => (
-            <div
-              key={job.id}
-              className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:shadow-md transition"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    {job.title}
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    {job.company} • {job.location}
-                  </p>
-                </div>
-
-                {job.verified && (
-                  <span className="text-xs font-medium text-green-600 bg-green-100 px-3 py-1 rounded-full">
-                    Verified
-                  </span>
-                )}
-              </div>
-
-              {/* SKILLS */}
-              <div className="mt-4 flex flex-wrap gap-2">
-                {job.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-
-              {/* FOOTER */}
-              <div className="mt-6 flex items-center justify-between">
-                <span className="text-sm font-medium text-indigo-600">
-                  {job.budget}
-                </span>
-
-               
-
-            <Link
-            href={`/jobs/${job.id}`}
-            className="px-5 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700"
-            >
-            View Details
-            </Link>
-
-              </div>
-            </div>
-          ))}
-        </section>
+function StatCard({ label, value, color, icon }: StatCardProps) {
+  const colors = { 
+    blue: "bg-blue-50 text-blue-600", 
+    emerald: "bg-emerald-50 text-emerald-600", 
+    orange: "bg-orange-50 text-orange-600" 
+  };
+  
+  return (
+    <div className="bg-white p-8 rounded-[36px] border border-slate-100 shadow-sm flex items-center justify-between transition-transform hover:scale-[1.02]">
+      <div>
+        <p className="text-slate-400 text-xs font-black uppercase mb-2 tracking-widest">{label}</p>
+        <span className="text-5xl font-black text-slate-900 leading-none">{value}</span>
+      </div>
+      <div className={`${colors[color]} w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner`}>
+        {icon}
       </div>
     </div>
   );

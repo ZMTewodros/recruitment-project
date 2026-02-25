@@ -1,226 +1,83 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { useAuth } from "@/app/context/AuthContext";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import {
-  LayoutDashboard,
-  User,
-  Briefcase,
-  FileText,
-  Users,
-  PlusCircle,
-  Shield,
+import { useEffect } from "react";
+import { 
+  LayoutDashboard, 
+  Briefcase, 
+  Users, 
+  MessageSquare, 
+  UserCircle, 
   LogOut,
-  Menu,
-  X,
+  Search,
+  FileText
 } from "lucide-react";
-import { useAuthStore } from "@/store/auth.store";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { user, logout, hasMounted } = useAuth();
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
-  const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
-
-  // 🔒 If not logged in
   useEffect(() => {
-    if (!user) {
-      router.replace("/login");
-    }
-  }, [user, router]);
+    if (hasMounted && !user) router.push("/login");
+  }, [user, router, hasMounted]);
 
-  // 🔒 Profile completion guard
-  useEffect(() => {
-    if (!user) return;
+  if (!hasMounted || !user) return null;
 
-    if (!user.profileCompleted && !pathname.includes("/profile")) {
-      router.replace(`/${user.role}/profile`);
-    }
-  }, [user, pathname, router]);
-
-  if (!user) return null;
-
-  // 🎯 ROLE BASED MENU
-  const roleMenus: Record<string, any[]> = {
-    jobseeker: [
-      {
-        name: "Dashboard",
-        href: "/jobseeker/dashboard",
-        icon: <LayoutDashboard size={18} />,
-      },
-      {
-        name: "Browse Jobs",
-        href: "/jobseeker/jobs",
-        icon: <Briefcase size={18} />,
-      },
-      {
-        name: "Applications",
-        href: "/jobseeker/applications",
-        icon: <FileText size={18} />,
-      },
-      {
-        name: "Profile",
-        href: "/jobseeker/profile",
-        icon: <User size={18} />,
-      },
-    ],
-
-    employer: [
-      {
-        name: "Dashboard",
-        href: "/employer/dashboard",
-        icon: <LayoutDashboard size={18} />,
-      },
-      {
-        name: "Post Job",
-        href: "/employer/post-jobs",
-        icon: <PlusCircle size={18} />,
-      },
-      {
-        name: "My Jobs",
-        href: "/employer/jobs",
-        icon: <Briefcase size={18} />,
-      },
-      {
-        name: "Candidates",
-        href: "/employer/candidates",
-        icon: <Users size={18} />,
-      },
-      {
-        name: "Profile",
-        href: "/employer/profile",
-        icon: <User size={18} />,
-      },
-    ],
-
-    admin: [
-      {
-        name: "Dashboard",
-        href: "/admin/dashboard",
-        icon: <LayoutDashboard size={18} />,
-      },
-      {
-        name: "Manage Users",
-        href: "/admin/users",
-        icon: <Users size={18} />,
-      },
-      {
-        name: "Manage Jobs",
-        href: "/admin/jobs",
-        icon: <Briefcase size={18} />,
-      },
-      {
-        name: "Profile",
-        href: "/admin/profile",
-        icon: <User size={18} />,
-      },
-    ],
-  };
-
-  const menuItems = roleMenus[user.role] || [];
+  const isActive = (path: string) =>
+    pathname === path 
+      ? "bg-blue-600 text-white shadow-lg shadow-blue-200" 
+      : "text-slate-400 hover:bg-slate-50 hover:text-slate-800";
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-
-      {/* MOBILE OVERLAY */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
+    <div className="flex min-h-screen bg-gray-50">
       {/* SIDEBAR */}
-      <aside
-        className={`fixed md:static z-50 top-0 left-0 h-full w-64 bg-white border-r transform transition-transform duration-300
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        md:translate-x-0`}
-      >
-        <div className="p-6 text-xl font-bold border-b flex justify-between items-center">
-          Recruitment Panel
-          <button
-            className="md:hidden"
-            onClick={() => setIsOpen(false)}
-          >
-            <X size={20} />
-          </button>
+      <aside className="w-72 bg-white border-r flex flex-col p-8 fixed h-full z-10">
+        <div className="flex items-center gap-3 mb-12">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">A</div>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tighter">AfriHire</h2>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                  isActive
-                    ? "bg-indigo-100 text-indigo-700"
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                {item.icon}
-                {item.name}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 space-y-2">
+          {user.role === "employer" ? (
+            <>
+              <SidebarLink href="/employer/dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" active={isActive("/employer/dashboard")} />
+              <SidebarLink href="/employer/jobs" icon={<Briefcase size={20}/>} label="Jobs" active={isActive("/employer/jobs")} />
+              <SidebarLink href="/employer/candidates" icon={<Users size={20}/>} label="Candidates" active={isActive("/employer/candidates")} />
+              <SidebarLink href="/employer/messages" icon={<MessageSquare size={20}/>} label="Messages" active={isActive("/employer/messages")} />
+            </>
+          ) : (
+            <>
+              <SidebarLink href="/jobseeker/dashboard" icon={<LayoutDashboard size={20}/>} label="My Dashboard" active={isActive("/jobseeker/dashboard")} />
+              <SidebarLink href="/jobseeker/jobs" icon={<Search size={20}/>} label="Browse Jobs" active={isActive("/jobseeker/jobs")} />
+              <SidebarLink href="/jobseeker/applications" icon={<FileText size={20}/>} label="Applications" active={isActive("/jobseeker/applications")} />
+              <SidebarLink href="/jobseeker/messages" icon={<MessageSquare size={20}/>} label="Messages" active={isActive("/jobseeker/messages")} />
+            </>
+          )}
+          <hr className="my-4 border-slate-100" />
+          <SidebarLink href="/profile" icon={<UserCircle size={20}/>} label="Profile" active={isActive("/profile")} />
         </nav>
 
-        {/* LOGOUT */}
-        <div className="p-4 border-t">
-          <button
-            onClick={() => {
-              logout();
-              localStorage.removeItem("token");
-              router.replace("/login");
-            }}
-            className="flex items-center gap-2 text-red-600 hover:text-red-700"
-          >
-            <LogOut size={18} />
-            Logout
-          </button>
-        </div>
+        <button onClick={logout} className="mt-auto p-4 text-red-500 font-bold hover:bg-red-50 rounded-xl transition-colors text-left flex items-center gap-3">
+          <LogOut size={20} />
+          Logout
+        </button>
       </aside>
 
-      {/* MAIN AREA */}
-      <div className="flex-1 flex flex-col">
-
-        {/* TOPBAR */}
-        <header className="bg-white border-b px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <button
-              className="md:hidden"
-              onClick={() => setIsOpen(true)}
-            >
-              <Menu size={22} />
-            </button>
-            <h1 className="font-semibold text-lg">
-              Welcome back 👋
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
-              {user.name?.charAt(0).toUpperCase()}
-            </div>
-          </div>
-        </header>
-
-        {/* PAGE CONTENT */}
-        <main className="flex-1 p-6">
-          {children}
-        </main>
-
-      </div>
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 ml-72 p-12 overflow-y-auto">
+        {children}
+      </main>
     </div>
+  );
+}
+
+function SidebarLink({ href, icon, label, active }: { href: string, icon: React.ReactNode, label: string, active: string }) {
+  return (
+    <Link href={href} className={`flex items-center gap-3 p-4 rounded-xl font-bold transition-all ${active}`}>
+      {icon}
+      {label}
+    </Link>
   );
 }
