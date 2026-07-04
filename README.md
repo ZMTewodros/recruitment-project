@@ -280,10 +280,10 @@ npm run start:prod
 
 ## Author
 
-**Tewodros Ayalew**
+**Tewodros Melkamu**
 
 - GitHub: https://github.com/ZMTewodros
-- LinkedIn: https://www.linkedin.com/in/your-linkedin-profile
+- LinkedIn: https://www.linkedin.com/in/tewodros-melkamu-32987436b
 
 ---
 
