@@ -178,28 +178,6 @@ npm install
 
 ---
 
-## Environment Variables
-
-Create a `.env` file in the project root.
-
-```env
-PORT=5000
-
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=recruitment_db
-DB_USERNAME=postgres
-DB_PASSWORD=your_password
-
-JWT_SECRET=your_jwt_secret
-JWT_EXPIRES=1d
-
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_email_app_password
-```
-
----
-
 ## Running the Project
 
 Development
