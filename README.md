@@ -59,7 +59,7 @@ A full-stack Recruitment Platform that connects job seekers and employers throug
 ## Technologies Used
 
 ### Frontend
-- React.js
+- Next.js
 - TypeScript
 - Tailwind CSS
 - Bootstrap
